@@ -14,24 +14,56 @@ namespace VectorFieldTools
         private string expression;
         private int position;
 
+        /// <summary>
+        /// Evalúa la expresión y lanza excepción si hay error. No llama Debug.LogError.
+        /// </summary>
         public float Evaluate(string expr, float x, float y)
         {
-            try
-            {
-                expression = expr.ToLower().Replace(" ", "");
-                expression = expression.Replace("x", x.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                expression = expression.Replace("y", y.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                expression = expression.Replace("pi", Math.PI.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                expression = expression.Replace("e", Math.E.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                
-                position = 0;
-                return ParseExpression();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Error evaluating expression '{expr}': {e.Message}");
-                return 0f;
-            }
+            expression = expr.ToLower().Replace(" ", "");
+
+            // 1) Proteger nombres de funciones con placeholders ANTES de sustituir variables
+            //    (evita que "exp" se corrompa al sustituir "e" o "x", etc.)
+            expression = expression.Replace("asin", "\x01");
+            expression = expression.Replace("acos", "\x02");
+            expression = expression.Replace("atan", "\x03");
+            expression = expression.Replace("sqrt", "\x04");
+            expression = expression.Replace("exp",  "\x05");
+            expression = expression.Replace("abs",  "\x06");
+            expression = expression.Replace("log",  "\x07");
+            expression = expression.Replace("sin",  "\x08");
+            expression = expression.Replace("cos",  "\x09");
+            expression = expression.Replace("tan",  "\x0A");
+
+            // 2) Sustituir constantes y variables
+            expression = expression.Replace("pi", Math.PI.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            expression = expression.Replace("e",  Math.E.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            expression = expression.Replace("x",  x.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            expression = expression.Replace("y",  y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+            // 3) Restaurar nombres de funciones
+            expression = expression.Replace("\x01", "asin");
+            expression = expression.Replace("\x02", "acos");
+            expression = expression.Replace("\x03", "atan");
+            expression = expression.Replace("\x04", "sqrt");
+            expression = expression.Replace("\x05", "exp");
+            expression = expression.Replace("\x06", "abs");
+            expression = expression.Replace("\x07", "log");
+            expression = expression.Replace("\x08", "sin");
+            expression = expression.Replace("\x09", "cos");
+            expression = expression.Replace("\x0A", "tan");
+
+            position = 0;
+            return ParseExpression();
+        }
+
+        /// <summary>
+        /// Evalúa de forma segura (devuelve 0 si hay error, sin loguear).
+        /// Usar en la generación de flechas para no spam consola.
+        /// </summary>
+        public float EvaluateSafe(string expr, float x, float y)
+        {
+            try { return Evaluate(expr, x, y); }
+            catch { return 0f; }
         }
 
         public bool IsValidExpression(string expr)

@@ -174,8 +174,8 @@ namespace VectorFieldTools
                     }
 
                     // Evaluar las fórmulas
-                    float vectorX = parser.Evaluate(formulaX, localX, localY);
-                    float vectorY = parser.Evaluate(formulaY, localX, localY);
+                    float vectorX = parser.EvaluateSafe(formulaX, localX, localY);
+                    float vectorY = parser.EvaluateSafe(formulaY, localX, localY);
 
                     // Crear el vector
                     Vector2 vector = new Vector2(vectorX, vectorY);

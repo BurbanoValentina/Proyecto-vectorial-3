@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
 
 namespace VectorFieldTools
 {
@@ -140,9 +139,8 @@ namespace VectorFieldTools
             if (manager.avoidObstacles)
             {
                 EditorGUI.indentLevel++;
-                manager.obstacleLayer = EditorGUILayout.MaskField("Capas de Obstáculos", 
-                    InternalEditorUtility.LayerMaskToConcatenatedLayersMask(manager.obstacleLayer), 
-                    InternalEditorUtility.layers);
+                var obstacleLayerProp = serializedObject.FindProperty("obstacleLayer");
+                EditorGUILayout.PropertyField(obstacleLayerProp, new GUIContent("Capas de Obstáculos"));
                 manager.obstacleCheckRadius = EditorGUILayout.Slider("Radio de Verificación", manager.obstacleCheckRadius, 0.1f, 2f);
                 EditorGUI.indentLevel--;
                 
@@ -206,18 +204,20 @@ namespace VectorFieldTools
         {
             if (string.IsNullOrWhiteSpace(formula))
             {
-                EditorGUILayout.HelpBox($"La fórmula {name} está vacía", MessageType.Warning);
+                EditorGUILayout.HelpBox($"Fórmula {name} vacía.", MessageType.Warning);
                 return;
             }
 
+            // Usar EvaluateSafe para no mandar Debug.LogError al validar en el Inspector
             MathExpressionParser parser = new MathExpressionParser();
             try
             {
-                float result = parser.Evaluate(formula, 0, 0);
-                EditorGUILayout.LabelField($"✓ Fórmula {name} válida (test: {result:F3})", EditorStyles.miniLabel);
+                float result = parser.Evaluate(formula, 1, 1); // x=1, y=1 para probar bien
+                EditorGUILayout.LabelField($"  ✓ OK  (valor en 1,1 = {result:F3})", EditorStyles.miniLabel);
             }
             catch (System.Exception e)
             {
+                // Mostrar error en el inspector sin spam en consola
                 EditorGUILayout.HelpBox($"Error en fórmula {name}: {e.Message}", MessageType.Error);
             }
         }

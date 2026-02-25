@@ -54,7 +54,11 @@ namespace VectorFieldTools
             // Si no asignamos el campo vectorial manualmente, lo buscamos en la escena
             if (vectorField == null)
             {
+#if UNITY_2023_1_OR_NEWER
                 vectorField = FindAnyObjectByType<VectorFieldRuntimeController>();
+#else
+                vectorField = FindObjectOfType<VectorFieldRuntimeController>();
+#endif
             }
         }
 

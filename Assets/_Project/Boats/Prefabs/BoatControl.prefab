@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6416204202626644904}
   - component: {fileID: 1444136760438848902}
   - component: {fileID: 8931548056665698255}
+  - component: {fileID: 9023341122334455667}
   m_Layer: 0
   m_Name: Boat
   m_TagString: Untagged
@@ -220,6 +221,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 0.05
   _rotateSpeed: 0.5
+--- !u!114 &9023341122334455667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4051008097147823572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23a02ebac8c665c4ba102375ebd70b7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vectorField: {fileID: 0}
+  moveSpeed: 5
+  rotationSpeed: 2
+  vectorInfluence: 1
+  checkHeight: 0.5
+  autoMove: 1
+  usePhysics: 1
 --- !u!1001 &8722613021602687598
 PrefabInstance:
   m_ObjectHideFlags: 0
