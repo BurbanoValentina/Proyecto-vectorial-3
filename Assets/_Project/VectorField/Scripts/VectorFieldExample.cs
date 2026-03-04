@@ -1,111 +1,103 @@
 using UnityEngine;
 using VectorFieldTools;
 
-/// <summary>
-/// Ejemplo de uso del Vector Field Manager en runtime
-/// </summary>
-public class VectorFieldExample : MonoBehaviour
+namespace VectorFieldTools
 {
-    [Header("Referencias")]
-    public VectorFieldManager vectorField;
-
-    [Header("Configuración de Animación")]
-    public bool animateField = false;
-    public float animationSpeed = 1f;
-    
-    private float time = 0f;
-
-    void Start()
+    /// <summary>
+    /// Ejemplo de uso del Vector Field Manager en runtime.
+    /// Nota: La animación del campo está limitada a 2 regeneraciones por segundo
+    /// para evitar destruir/crear miles de GameObjects cada frame.
+    /// </summary>
+    public class VectorFieldExample : MonoBehaviour
     {
-        if (vectorField == null)
+        [Header("Referencias")]
+        public VectorFieldManager vectorField;
+
+        [Header("Animación")]
+        public bool animateField = false;
+        [Tooltip("Velocidad de animación del vórtice")]
+        public float animationSpeed = 1f;
+        [Tooltip("Máximo de regeneraciones por segundo (muy costoso instanciar flechas cada frame)")]
+        [Range(0.1f, 5f)]
+        public float maxRegenerationsPerSecond = 1f;
+
+        private float time = 0f;
+        private float lastRegenTime = -1f;
+
+        void Start()
         {
-            vectorField = GetComponent<VectorFieldManager>();
+            if (vectorField == null)
+                vectorField = GetComponent<VectorFieldManager>();
+
+            if (vectorField != null)
+                vectorField.GenerateField();
         }
 
-        if (vectorField != null)
+        void Update()
         {
-            // Generar el campo inicial
-            vectorField.GenerateField();
-        }
-    }
+            if (!animateField || vectorField == null)
+                return;
 
-    void Update()
-    {
-        if (animateField && vectorField != null)
-        {
             time += Time.deltaTime * animationSpeed;
-            
-            // Ejemplo de campo animado: vórtice que rota
+
+            // Throttle: no regenerar más rápido de lo especificado
+            float interval = 1f / Mathf.Max(0.01f, maxRegenerationsPerSecond);
+            if (Time.time - lastRegenTime < interval)
+                return;
+
+            lastRegenTime = Time.time;
+
             float rotation = time * 0.5f;
-            vectorField.formulaX = $"(-y*cos({rotation}) - x*sin({rotation}))/(x^2+y^2+1)";
-            vectorField.formulaY = $"(x*cos({rotation}) - y*sin({rotation}))/(x^2+y^2+1)";
-            
+            vectorField.formulaX = $"(-y*cos({rotation:F4})-x*sin({rotation:F4}))/(x^2+y^2+1)";
+            vectorField.formulaY = $"(x*cos({rotation:F4})-y*sin({rotation:F4}))/(x^2+y^2+1)";
             vectorField.RegenerateField();
         }
-    }
 
-    // Métodos que puedes llamar desde el Inspector o código
-    public void SetCircularField()
-    {
-        if (vectorField != null)
+        public void SetCircularField()
         {
+            if (vectorField == null) return;
             vectorField.formulaX = "-y";
             vectorField.formulaY = "x";
             vectorField.RegenerateField();
-            Debug.Log("Campo circular aplicado");
         }
-    }
 
-    public void SetRadialField()
-    {
-        if (vectorField != null)
+        public void SetRadialField()
         {
+            if (vectorField == null) return;
             vectorField.formulaX = "x";
             vectorField.formulaY = "y";
             vectorField.RegenerateField();
-            Debug.Log("Campo radial aplicado");
         }
-    }
 
-    public void SetWaveField()
-    {
-        if (vectorField != null)
+        public void SetWaveField()
         {
+            if (vectorField == null) return;
             vectorField.formulaX = "sin(y)";
             vectorField.formulaY = "cos(x)";
             vectorField.RegenerateField();
-            Debug.Log("Campo de onda aplicado");
         }
-    }
 
-    public void SetSpiralField()
-    {
-        if (vectorField != null)
+        public void SetSpiralField()
         {
-            vectorField.formulaX = "-y + x*0.1";
-            vectorField.formulaY = "x + y*0.1";
+            if (vectorField == null) return;
+            vectorField.formulaX = "-y+x*0.1";
+            vectorField.formulaY = "x+y*0.1";
             vectorField.RegenerateField();
-            Debug.Log("Campo espiral aplicado");
         }
-    }
 
-    public void SetVortexField()
-    {
-        if (vectorField != null)
+        public void SetVortexField()
         {
+            if (vectorField == null) return;
             vectorField.formulaX = "-y/(x^2+y^2+1)";
             vectorField.formulaY = "x/(x^2+y^2+1)";
             vectorField.RegenerateField();
-            Debug.Log("Campo vórtice aplicado");
         }
-    }
 
-    public void ClearField()
-    {
-        if (vectorField != null)
+        public void ClearField()
         {
+            if (vectorField == null) return;
             vectorField.ClearField();
-            Debug.Log("Campo limpiado");
         }
     }
 }
+

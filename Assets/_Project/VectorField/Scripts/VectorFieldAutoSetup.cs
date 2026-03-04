@@ -75,7 +75,7 @@ namespace VectorFieldTools
             controller.formulaX = formulaX;
             controller.formulaY = formulaY;
             controller.arrowHeight = 0.5f;
-            controller.arrowScale = 0.3f;
+            controller.arrowScale = 0.8f;
             controller.arrowColor = Color.cyan;
 
             // Configurar detección de obstáculos

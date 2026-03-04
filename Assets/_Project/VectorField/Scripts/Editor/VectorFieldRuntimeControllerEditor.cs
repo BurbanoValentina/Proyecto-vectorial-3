@@ -105,9 +105,15 @@ namespace VectorFieldTools.Editor
                 new GUIContent("Altura", "Distancia sobre el agua donde se colocan las flechas"),
                 controller.arrowHeight);
 
+            string scaleTooltip = controller.autoScaleToGrid
+                ? "Fracción del tamaño de celda (1.0 = rellena la celda, 0.8 = sin huecos visibles)"
+                : "Escala absoluta en unidades de mundo";
+            controller.autoScaleToGrid = EditorGUILayout.Toggle(
+                new GUIContent("Auto-Escala por Celda", "Escala las flechas relativo al espaciado de la grilla para eliminar huecos"),
+                controller.autoScaleToGrid);
             controller.arrowScale   = EditorGUILayout.Slider(
-                new GUIContent("Escala", "Tamaño de cada flecha"),
-                controller.arrowScale, 0.05f, 3f);
+                new GUIContent("Escala", scaleTooltip),
+                controller.arrowScale, 0.05f, 2f);
 
             controller.arrowColor   = EditorGUILayout.ColorField(
                 new GUIContent("Color", "Color de las flechas del campo vectorial"),

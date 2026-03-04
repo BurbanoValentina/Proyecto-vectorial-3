@@ -59,7 +59,7 @@ namespace VectorFieldTools
             controller.formulaX = "-y";
             controller.formulaY = "x";
             controller.arrowHeight = 0.5f;
-            controller.arrowScale = 0.3f;
+            controller.arrowScale = 0.8f;
             controller.arrowColor = Color.cyan;
 
             initialized = true;

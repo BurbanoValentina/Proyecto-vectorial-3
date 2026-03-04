@@ -78,7 +78,7 @@ namespace VectorFieldTools.Editor
             controller.fieldSize = new Vector2(80f, 80f);
             controller.minArrows = Mathf.Max(controller.minArrows, 1500);
             controller.arrowHeight = 0.05f;
-            controller.arrowScale = 0.35f;
+            controller.arrowScale = 0.8f;
             controller.arrowColor = Color.cyan;
 
             // Por defecto: modo coordenadas (más simple que fórmulas)

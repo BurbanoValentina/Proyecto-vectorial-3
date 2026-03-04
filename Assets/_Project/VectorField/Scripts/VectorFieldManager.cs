@@ -56,6 +56,9 @@ namespace VectorFieldTools
         [Range(0.5f, 5f)]
         public float maxArrowScale = 2f;
 
+        [Tooltip("Cuando activo, la escala se multiplica por el tamaño de celda (elimina huecos)")]
+        public bool autoScaleToGrid = true;
+
         [Header("Detección de Obstáculos")]
         [Tooltip("Capas que representan obstáculos donde NO se colocarán flechas")]
         public LayerMask obstacleLayer;
@@ -146,6 +149,7 @@ namespace VectorFieldTools
 
             float stepX = fieldSize.x / arrowsX;
             float stepY = fieldSize.y / arrowsY;
+            float cellSize = Mathf.Min(stepX, stepY);
 
             Vector3 startPos = fieldCenter - new Vector3(fieldSize.x / 2f, 0, fieldSize.y / 2f);
 
@@ -192,7 +196,7 @@ namespace VectorFieldTools
                     float angle = Mathf.Atan2(vector.y, vector.x) * Mathf.Rad2Deg;
                     arrow.transform.rotation = Quaternion.Euler(90f, -angle + 90f, 0f);
 
-                    // Escalar la flecha
+                    // Escalar la flecha (relativo al tamaño de celda si autoScaleToGrid)
                     float scale = arrowScale;
                     if (scaleByMagnitude)
                     {
@@ -200,7 +204,8 @@ namespace VectorFieldTools
                                                            minArrowScale, maxArrowScale);
                         scale *= magnitudeScale;
                     }
-                    arrow.transform.localScale = Vector3.one * scale;
+                    float finalScale = autoScaleToGrid ? (scale * cellSize) : scale;
+                    arrow.transform.localScale = Vector3.one * finalScale;
 
                     // Aplicar color
                     ApplyColorToArrow(arrow, arrowColor);
@@ -240,15 +245,7 @@ namespace VectorFieldTools
             }
             generatedArrows.Clear();
 
-            if (arrowContainer != null)
-            {
-                if (Application.isPlaying)
-                    Destroy(arrowContainer.gameObject);
-                else
-                    DestroyImmediate(arrowContainer.gameObject);
-                arrowContainer = null;
-            }
-
+            // No destruimos el contenedor para reutilizarlo en la próxima generación
             fieldGenerated = false;
         }
 
@@ -269,23 +266,20 @@ namespace VectorFieldTools
             }
         }
 
+        private static readonly MaterialPropertyBlock _mpb = new MaterialPropertyBlock();
+
         /// <summary>
-        /// Aplica color a todos los materiales de la flecha
+        /// Aplica color usando MaterialPropertyBlock (sin instanciar materiales extra)
         /// </summary>
         private void ApplyColorToArrow(GameObject arrow, Color color)
         {
-            Renderer[] renderers = arrow.GetComponentsInChildren<Renderer>();
+            Renderer[] renderers = arrow.GetComponentsInChildren<Renderer>(true);
             foreach (Renderer renderer in renderers)
             {
-                if (renderer.sharedMaterial != null)
-                {
-                    Material mat = new Material(renderer.sharedMaterial);
-                    if (mat.HasProperty("_Color"))
-                        mat.color = color;
-                    else if (mat.HasProperty("_BaseColor"))
-                        mat.SetColor("_BaseColor", color);
-                    renderer.material = mat;
-                }
+                renderer.GetPropertyBlock(_mpb);
+                _mpb.SetColor("_BaseColor", color);
+                _mpb.SetColor("_Color",     color);
+                renderer.SetPropertyBlock(_mpb);
             }
         }
 

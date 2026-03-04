@@ -86,8 +86,8 @@ namespace VectorFieldTools
         [Tooltip("Altura de las flechas")]
         public float arrowHeight = 0.5f;
         
-        [Tooltip("Escala de las flechas")]
-        public float arrowScale = 0.3f;
+        [Tooltip("Escala de las flechas (con autoScaleToGrid activo: fracción del tamaño de celda. 0.8 = sin huecos)")]
+        public float arrowScale = 0.8f;
         
         [Tooltip("Color de las flechas")]
         public Color arrowColor = Color.cyan;
@@ -102,6 +102,20 @@ namespace VectorFieldTools
         [Tooltip("Radio de verificación de obstáculos")]
         public float obstacleCheckRadius = 0.5f;
 
+        [Header("Auto-Generación")]
+        [Tooltip("Genera flechas automáticamente al abrir la escena en el Editor")]
+        public bool autoGenerateInEditor = false;
+
+        [Tooltip("Regenera flechas en el Editor cuando cambias parámetros (puede ser lento)")]
+        public bool liveRegenerateInEditor = false;
+
+        [Tooltip("Genera flechas automáticamente al entrar en Play")]
+        public bool autoGenerateOnPlay = true;
+
+        [Header("Escala de Flechas")]
+        [Tooltip("Cuando activo, arrowScale se interpreta como fracción del tamaño de celda (1 = rellena la celda completa). Elimina los huecos.")]
+        public bool autoScaleToGrid = true;
+
         private static readonly Collider[] obstacleHits = new Collider[16];
 
         // Componentes internos
@@ -112,6 +126,18 @@ namespace VectorFieldTools
 
         [SerializeField]
         private bool fieldGenerated = false;
+
+        /// <summary>Espaciado calculado entre flechas según densidad actual.</summary>
+        public float arrowSpacing
+        {
+            get
+            {
+                float area = fieldSize.x * fieldSize.y;
+                if (area <= 0f || minArrows <= 0) return 1f;
+                float density = Mathf.Sqrt(minArrows / area);
+                return 1f / density;
+            }
+        }
 
         // Estructura para almacenar datos de cada flecha
         public struct ArrowData
@@ -129,13 +155,18 @@ namespace VectorFieldTools
         void OnEnable()
         {
             if (parser == null)
-            {
                 parser = new MathExpressionParser();
-            }
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying && autoGenerateInEditor && !fieldGenerated)
+                GenerateField();
+#endif
         }
 
         void Start()
         {
+            if (Application.isPlaying && autoGenerateOnPlay && !fieldGenerated)
+                GenerateField();
         }
 
         void OnValidate()
@@ -199,11 +230,14 @@ namespace VectorFieldTools
                 }
             }
 
-            // Crear contenedor
-            GameObject container = new GameObject("Vector Field Runtime");
-            container.transform.parent = transform;
-            container.transform.localPosition = Vector3.zero;
-            arrowContainer = container.transform;
+            // Crear o reusar contenedor
+            if (arrowContainer == null)
+            {
+                GameObject container = new GameObject("Vector Field Runtime");
+                container.transform.parent = transform;
+                container.transform.localPosition = Vector3.zero;
+                arrowContainer = container.transform;
+            }
 
             // Calcular densidad para obtener al menos minArrows flechas
             float area = fieldSize.x * fieldSize.y;
@@ -214,6 +248,7 @@ namespace VectorFieldTools
 
             float stepX = fieldSize.x / arrowsX;
             float stepY = fieldSize.y / arrowsY;
+            float cellSize = Mathf.Min(stepX, stepY);
 
             Vector3 startPos = fieldCenter - new Vector3(fieldSize.x / 2f, 0, fieldSize.y / 2f);
 
@@ -255,8 +290,9 @@ namespace VectorFieldTools
                     float angle = Mathf.Atan2(vector.y, vector.x) * Mathf.Rad2Deg;
                     arrow.transform.rotation = Quaternion.Euler(90f, -angle + 90f, 0f);
                     
-                    // Escalar
-                    arrow.transform.localScale = Vector3.one * arrowScale;
+                    // Escalar: si autoScaleToGrid, arrowScale es fracción del tamaño de celda
+                    float finalScale = autoScaleToGrid ? (arrowScale * cellSize) : arrowScale;
+                    arrow.transform.localScale = Vector3.one * finalScale;
 
                     // Aplicar color
                     ApplyColorToArrow(arrow, arrowColor);
@@ -317,16 +353,11 @@ namespace VectorFieldTools
             {
                 SafeDestroy(arrow);
             }
-            
+
             generatedArrows.Clear();
             arrowDataList.Clear();
 
-            if (arrowContainer != null)
-            {
-                SafeDestroy(arrowContainer.gameObject);
-                arrowContainer = null;
-            }
-
+            // No destruimos el contenedor para reutilizarlo en la próxima generación
             fieldGenerated = false;
         }
 
@@ -463,23 +494,21 @@ namespace VectorFieldTools
 #endif
         }
 
+        // Reutilizar un solo MaterialPropertyBlock para todas las flechas (sin duplicar materiales)
+        private static readonly MaterialPropertyBlock _mpb = new MaterialPropertyBlock();
+
         /// <summary>
-        /// Aplica color a la flecha
+        /// Aplica color usando MaterialPropertyBlock (cero instancias de material extra).
         /// </summary>
         private void ApplyColorToArrow(GameObject arrow, Color color)
         {
-            Renderer[] renderers = arrow.GetComponentsInChildren<Renderer>();
+            Renderer[] renderers = arrow.GetComponentsInChildren<Renderer>(true);
             foreach (Renderer renderer in renderers)
             {
-                if (renderer.sharedMaterial != null)
-                {
-                    Material mat = new Material(renderer.sharedMaterial);
-                    if (mat.HasProperty("_Color"))
-                        mat.color = color;
-                    else if (mat.HasProperty("_BaseColor"))
-                        mat.SetColor("_BaseColor", color);
-                    renderer.material = mat;
-                }
+                renderer.GetPropertyBlock(_mpb);
+                _mpb.SetColor("_BaseColor", color);
+                _mpb.SetColor("_Color",     color);
+                renderer.SetPropertyBlock(_mpb);
             }
         }
 
