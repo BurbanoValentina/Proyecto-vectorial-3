@@ -90,7 +90,7 @@ namespace VectorFieldTools
             info += $"Tamaño: {fieldController.fieldSize}\n";
             info += $"Fórmula X: {fieldController.formulaX}\n";
             info += $"Fórmula Y: {fieldController.formulaY}\n";
-            info += $"Mín. Flechas: {fieldController.minArrows}";
+            info += $"Espaciado: {fieldController.arrowSpacing:F2} u | Escala: {fieldController.arrowScale:F2}";
 
             GUI.Label(new Rect(Screen.width - 350, 10, 340, 200), info, style);
         }

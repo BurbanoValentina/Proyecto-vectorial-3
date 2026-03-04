@@ -22,16 +22,6 @@ namespace VectorFieldTools
         [Tooltip("Prefab de la flecha 3D")]
         public GameObject arrowPrefab;
 
-        [Header("Auto Generación")]
-        [Tooltip("Generar flechas automáticamente en el editor (sin Play)")]
-        public bool autoGenerateInEditor = true;
-
-        [Tooltip("Regenerar automáticamente en el editor cuando cambien valores (puede ser pesado)")]
-        public bool liveRegenerateInEditor = false;
-
-        [Tooltip("Generar flechas automáticamente al iniciar Play")]
-        public bool autoGenerateOnPlay = true;
-
         [Header("Modo de Campo")]
         public FieldMode fieldMode = FieldMode.Formula;
 
@@ -123,10 +113,6 @@ namespace VectorFieldTools
         [SerializeField]
         private bool fieldGenerated = false;
 
-    #if UNITY_EDITOR
-        private bool editorGenerateScheduled = false;
-    #endif
-
         // Estructura para almacenar datos de cada flecha
         public struct ArrowData
         {
@@ -146,19 +132,10 @@ namespace VectorFieldTools
             {
                 parser = new MathExpressionParser();
             }
-
-            if (!Application.isPlaying)
-            {
-                TryAutoGenerateInEditor();
-            }
         }
 
         void Start()
         {
-            if (Application.isPlaying && autoGenerateOnPlay && !fieldGenerated)
-            {
-                GenerateField();
-            }
         }
 
         void OnValidate()
@@ -166,19 +143,6 @@ namespace VectorFieldTools
             if (parser == null)
             {
                 parser = new MathExpressionParser();
-            }
-
-            if (!Application.isPlaying && autoGenerateInEditor)
-            {
-                // En modo coordenadas: la intención es que al editar coordenadas el campo cambie.
-                if (fieldMode == FieldMode.TargetCoordinate)
-                {
-                    ScheduleEditorRegenerate();
-                }
-                else if (liveRegenerateInEditor)
-                {
-                    ScheduleEditorRegenerate();
-                }
             }
         }
 
@@ -496,49 +460,6 @@ namespace VectorFieldTools
             DestroyImmediate(obj);
 #else
             Destroy(obj);
-#endif
-        }
-
-        private void TryAutoGenerateInEditor()
-        {
-#if UNITY_EDITOR
-            if (!autoGenerateInEditor)
-                return;
-            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                return;
-            if (arrowPrefab == null)
-                return;
-
-            // Si ya existe un contenedor con flechas, no regenerar a menos que se pida
-            if (fieldGenerated)
-                return;
-
-            ScheduleEditorRegenerate();
-#endif
-        }
-
-        private void ScheduleEditorRegenerate()
-        {
-#if UNITY_EDITOR
-            if (editorGenerateScheduled)
-                return;
-
-            editorGenerateScheduled = true;
-            UnityEditor.EditorApplication.delayCall += () =>
-            {
-                editorGenerateScheduled = false;
-                if (this == null)
-                    return;
-                if (Application.isPlaying)
-                    return;
-                if (!autoGenerateInEditor)
-                    return;
-                if (arrowPrefab == null)
-                    return;
-
-                GenerateField();
-                UnityEditor.EditorUtility.SetDirty(this);
-            };
 #endif
         }
 
