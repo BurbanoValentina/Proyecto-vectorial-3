@@ -132,7 +132,7 @@ namespace VectorFieldTools
             panelRect.anchorMax = new Vector2(0, 1);
             panelRect.pivot = new Vector2(0, 1);
             panelRect.anchoredPosition = new Vector2(10, -45);
-            panelRect.sizeDelta = new Vector2(280, 480);
+            panelRect.sizeDelta = new Vector2(280, 670);
 
             Image panelImage = panel.AddComponent<Image>();
             panelImage.color = new Color(0.15f, 0.15f, 0.15f, 0.98f);
@@ -188,6 +188,43 @@ namespace VectorFieldTools
             yPos -= 45;
 
             clearButton = CreateUnityButton(panel.transform, "Limpiar Campo", new Vector2(15, yPos), new Vector2(panelWidth - 20, 30), new Color(0.5f, 0.25f, 0.25f, 1f));
+            yPos -= 42;
+
+            // ─── Presets ───────────────────────────────────────────────
+            CreateSectionHeader(panel.transform, "▼ Presets de Fórmulas (clic para cargar)", new Vector2(10, yPos), new Vector2(panelWidth, 25));
+            yPos -= 32;
+
+            // Fila 1
+            Button btnRotacion   = CreateUnityButton(panel.transform, "🔄 Rotación",     new Vector2(15,          yPos), new Vector2(115, 30), new Color(0.18f, 0.38f, 0.60f, 1f));
+            Button btnConverge  = CreateUnityButton(panel.transform, "▼ Convergente",  new Vector2(140,         yPos), new Vector2(125, 30), new Color(0.18f, 0.50f, 0.40f, 1f));
+            yPos -= 36;
+
+            // Fila 2
+            Button btnDiverge   = CreateUnityButton(panel.transform, "▲ Divergente",    new Vector2(15,          yPos), new Vector2(115, 30), new Color(0.50f, 0.35f, 0.10f, 1f));
+            Button btnEspiral   = CreateUnityButton(panel.transform, "🛆 Espiral",       new Vector2(140,         yPos), new Vector2(125, 30), new Color(0.40f, 0.18f, 0.55f, 1f));
+            yPos -= 36;
+
+            // Fila 3
+            Button btnSeno      = CreateUnityButton(panel.transform, "~ Onda Seno",     new Vector2(15,          yPos), new Vector2(115, 30), new Color(0.55f, 0.25f, 0.18f, 1f));
+            Button btnVortice   = CreateUnityButton(panel.transform, "♻ Vórtice",        new Vector2(140,         yPos), new Vector2(125, 30), new Color(0.20f, 0.40f, 0.55f, 1f));
+            yPos -= 42;
+
+            // Nota de ayuda
+            CreateSmallLabel(panel.transform,
+                "Variables: x, y  |  Ops: + - * / ^ ( )",
+                new Vector2(15, yPos), new Vector2(panelWidth - 20, 18));
+            yPos -= 18;
+            CreateSmallLabel(panel.transform,
+                "Funciones: sin cos tan sqrt abs exp log",
+                new Vector2(15, yPos), new Vector2(panelWidth - 20, 18));
+
+            // Listeners de presets
+            btnRotacion.onClick.AddListener(() => SetPreset("-y",           "x"));
+            btnConverge.onClick.AddListener(() => SetPreset("-x",           "-y"));
+            btnDiverge.onClick.AddListener(() => SetPreset("x",             "y"));
+            btnEspiral.onClick.AddListener(() => SetPreset("-y+0.1*x",     "x+0.1*y"));
+            btnSeno.onClick.AddListener(() => SetPreset("sin(y)",          "cos(x)"));
+            btnVortice.onClick.AddListener(() => SetPreset("-y^3",          "x^3"));
 
             controlPanel = panel;
             controlPanel.SetActive(false);
@@ -275,6 +312,12 @@ namespace VectorFieldTools
             inputField.text = placeholder;
 
             return inputField;
+        }
+
+        private void SetPreset(string formX, string formY)
+        {
+            if (formulaXInput != null) formulaXInput.text = formX;
+            if (formulaYInput != null) formulaYInput.text = formY;
         }
 
         private Button CreateUnityButton(Transform parent, string text, Vector2 position, Vector2 size, Color color)
