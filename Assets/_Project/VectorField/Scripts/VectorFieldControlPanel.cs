@@ -24,8 +24,13 @@ namespace VectorFieldTools
         public TMP_InputField sizeZInput;
         public TMP_InputField formulaXInput;
         public TMP_InputField formulaYInput;
+        public TMP_InputField numVectorsInput;
+        public TMP_InputField flowSpeedInput;
         public Button generateButton;
         public Button clearButton;
+        public Button flowToggleButton;
+
+        private bool flowModeActive = false;
 
         private bool panelVisible = false;
 
@@ -44,6 +49,11 @@ namespace VectorFieldTools
             if (clearButton != null)
             {
                 clearButton.onClick.AddListener(OnClearButtonClick);
+            }
+
+            if (flowToggleButton != null)
+            {
+                flowToggleButton.onClick.AddListener(OnFlowToggleClick);
             }
 
             if (controlPanel != null)
@@ -88,6 +98,9 @@ namespace VectorFieldTools
             string formX = formulaXInput?.text ?? "-y";
             string formY = formulaYInput?.text ?? "x";
 
+            int numVectors = ParseInt(numVectorsInput?.text, 2000);
+            fieldController.minArrows = Mathf.Max(1, numVectors);
+
             Vector3 center = new Vector3(centerX, centerY, centerZ);
             Vector2 size = new Vector2(sizeX, sizeZ);
 
@@ -98,13 +111,50 @@ namespace VectorFieldTools
         {
             if (fieldController != null)
             {
+                // Desactivar flujo antes de limpiar
+                if (flowModeActive)
+                {
+                    flowModeActive = false;
+                    UpdateFlowButtonLabel();
+                }
                 fieldController.ClearField();
             }
+        }
+
+        private void OnFlowToggleClick()
+        {
+            if (fieldController == null)
+            {
+                Debug.LogError("No hay VectorFieldRuntimeController asignado!");
+                return;
+            }
+
+            flowModeActive = !flowModeActive;
+            float speed = ParseFloat(flowSpeedInput?.text, 3f);
+            fieldController.SetFlowMode(flowModeActive, speed);
+            UpdateFlowButtonLabel();
+        }
+
+        private void UpdateFlowButtonLabel()
+        {
+            if (flowToggleButton == null) return;
+            var label = flowToggleButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+            if (label != null)
+                label.text = flowModeActive ? "\u23f9 Detener Flujo" : "\u25b6 Activar Flujo";
         }
 
         private float ParseFloat(string text, float defaultValue)
         {
             if (float.TryParse(text, out float result))
+            {
+                return result;
+            }
+            return defaultValue;
+        }
+
+        private int ParseInt(string text, int defaultValue)
+        {
+            if (int.TryParse(text, out int result))
             {
                 return result;
             }
@@ -132,7 +182,7 @@ namespace VectorFieldTools
             panelRect.anchorMax = new Vector2(0, 1);
             panelRect.pivot = new Vector2(0, 1);
             panelRect.anchoredPosition = new Vector2(10, -45);
-            panelRect.sizeDelta = new Vector2(280, 670);
+            panelRect.sizeDelta = new Vector2(280, 780);
 
             Image panelImage = panel.AddComponent<Image>();
             panelImage.color = new Color(0.15f, 0.15f, 0.15f, 0.98f);
@@ -182,12 +232,27 @@ namespace VectorFieldTools
 
             // Acciones10
             CreateSectionHeader(panel.transform, "▼ Acciones", new Vector2(10, yPos), new Vector2(panelWidth, 25));
+            yPos -= 32;
+
+            CreateSmallLabel(panel.transform, "N\u00ba de Vectores:", new Vector2(15, yPos), new Vector2(115, 25));
+            numVectorsInput = CreateCompactInput(panel.transform, "2000", new Vector2(135, yPos), new Vector2(115, 25));
             yPos -= 35;
 
             generateButton = CreateUnityButton(panel.transform, "Generar Campo Vectorial", new Vector2(15, yPos), new Vector2(panelWidth - 20, 35), new Color(0.25f, 0.55f, 0.25f, 1f));
             yPos -= 45;
 
             clearButton = CreateUnityButton(panel.transform, "Limpiar Campo", new Vector2(15, yPos), new Vector2(panelWidth - 20, 30), new Color(0.5f, 0.25f, 0.25f, 1f));
+            yPos -= 42;
+
+            // ─── Modo Flujo ─────────────────────────────────────────────
+            CreateSectionHeader(panel.transform, "▼ Modo Flujo (vectores en movimiento)", new Vector2(10, yPos), new Vector2(panelWidth, 25));
+            yPos -= 32;
+
+            CreateSmallLabel(panel.transform, "Velocidad:", new Vector2(15, yPos), new Vector2(80, 25));
+            flowSpeedInput = CreateCompactInput(panel.transform, "3", new Vector2(100, yPos), new Vector2(150, 25));
+            yPos -= 35;
+
+            flowToggleButton = CreateUnityButton(panel.transform, "▶ Activar Flujo", new Vector2(15, yPos), new Vector2(panelWidth - 20, 32), new Color(0.25f, 0.45f, 0.65f, 1f));
             yPos -= 42;
 
             // ─── Presets ───────────────────────────────────────────────

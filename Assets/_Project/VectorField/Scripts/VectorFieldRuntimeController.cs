@@ -519,5 +519,51 @@ namespace VectorFieldTools
         {
             return arrowDataList;
         }
+
+        /// <summary>
+        /// Activa o desactiva el Modo Flujo en todas las flechas generadas.
+        /// Cuando está activo, cada flecha se mueve a través del campo siguiendo
+        /// la dirección del vector en su posición actual.
+        /// </summary>
+        /// <param name="enabled">Activar (true) o desactivar (false) el flujo.</param>
+        /// <param name="speed">Velocidad de desplazamiento en unidades/segundo.</param>
+        public void SetFlowMode(bool enabled, float speed)
+        {
+            float arrowY = GetArrowWorldY();
+
+            foreach (GameObject arrow in generatedArrows)
+            {
+                if (arrow == null) continue;
+
+                VectorFieldFlowParticle flow = arrow.GetComponent<VectorFieldFlowParticle>();
+
+                if (enabled)
+                {
+                    if (flow == null) flow = arrow.AddComponent<VectorFieldFlowParticle>();
+                    flow.fieldController = this;
+                    flow.flowSpeed = speed;
+                    flow.spawnCenter = fieldCenter;
+                    flow.spawnSize = fieldSize;
+                    flow.spawnY = arrowY;
+                    flow.RandomizePosition();
+                }
+                else
+                {
+                    if (flow != null)
+                    {
+                        if (Application.isPlaying)
+                            Destroy(flow);
+                        else
+                        {
+#if UNITY_EDITOR
+                            DestroyImmediate(flow);
+#else
+                            Destroy(flow);
+#endif
+                        }
+                    }
+                }
+            }
+        }
     }
 }
