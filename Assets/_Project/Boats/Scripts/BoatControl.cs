@@ -22,7 +22,7 @@ namespace Eldvmo.Ripples
             float move = 0f;  
             float turn = 0f;  
 
-            if (Input.GetKey(KeyCode.)) move += 1f;
+            if (Input.GetKey(KeyCode.W)) move += 1f;
             if (Input.GetKey(KeyCode.S)) move -= 1f;
 
 

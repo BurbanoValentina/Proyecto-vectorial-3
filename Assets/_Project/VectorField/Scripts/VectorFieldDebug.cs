@@ -195,7 +195,7 @@ namespace VectorFieldTools
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(VectorFieldDebug))]
-    public class VectorFieldDebugEditor : Editor
+    public class VectorFieldDebugEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

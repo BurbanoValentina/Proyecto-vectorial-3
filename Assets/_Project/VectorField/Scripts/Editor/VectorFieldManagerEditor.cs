@@ -4,7 +4,7 @@ using UnityEditor;
 namespace VectorFieldTools
 {
     [CustomEditor(typeof(VectorFieldManager))]
-    public class VectorFieldManagerEditor : Editor
+    public class VectorFieldManagerEditor : UnityEditor.Editor
     {
         private VectorFieldManager manager;
         private bool showExamples = false;
