@@ -495,7 +495,9 @@ namespace VectorFieldTools
         }
 
         // Reutilizar un solo MaterialPropertyBlock para todas las flechas (sin duplicar materiales)
-        private static readonly MaterialPropertyBlock _mpb = new MaterialPropertyBlock();
+        // Inicialización lazy para evitar el error en el constructor estático de MonoBehaviour
+        private static MaterialPropertyBlock _mpb;
+        private static MaterialPropertyBlock Mpb => _mpb ?? (_mpb = new MaterialPropertyBlock());
 
         /// <summary>
         /// Aplica color usando MaterialPropertyBlock (cero instancias de material extra).
@@ -505,10 +507,10 @@ namespace VectorFieldTools
             Renderer[] renderers = arrow.GetComponentsInChildren<Renderer>(true);
             foreach (Renderer renderer in renderers)
             {
-                renderer.GetPropertyBlock(_mpb);
-                _mpb.SetColor("_BaseColor", color);
-                _mpb.SetColor("_Color",     color);
-                renderer.SetPropertyBlock(_mpb);
+                renderer.GetPropertyBlock(Mpb);
+                Mpb.SetColor("_BaseColor", color);
+                Mpb.SetColor("_Color",     color);
+                renderer.SetPropertyBlock(Mpb);
             }
         }
 
