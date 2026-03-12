@@ -165,8 +165,8 @@ namespace VectorFieldTools
 
         void Start()
         {
-            if (Application.isPlaying && autoGenerateOnPlay && !fieldGenerated)
-                GenerateField();
+            // if (Application.isPlaying && autoGenerateOnPlay && !fieldGenerated)
+            //     GenerateField();
         }
 
         void OnValidate()
@@ -403,7 +403,9 @@ namespace VectorFieldTools
                     try
                     {
                         float vectorX = parser.Evaluate(formulaX, localX, localY);
+                        Debug.Log($"Evaluación fórmula X en ({localX}, {localY}): {vectorX}" + " con fórmula: " + formulaX);
                         float vectorY = parser.Evaluate(formulaY, localX, localY);
+                        Debug.Log($"Evaluación fórmula Y en ({localX}, {localY}): {vectorY}" + " con fórmula: " + formulaY);
                         return new Vector2(vectorX, vectorY);
                     }
                     catch

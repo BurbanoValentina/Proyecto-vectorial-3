@@ -31,7 +31,7 @@ namespace VectorFieldTools
             if (Input.GetKeyDown(generateKey))
             {
                 Debug.Log("Generando campo vectorial...");
-                controller.GenerateField();
+                //controller.GenerateField();
             }
 
             // Limpiar campo con tecla C

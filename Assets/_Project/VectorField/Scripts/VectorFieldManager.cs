@@ -104,7 +104,7 @@ namespace VectorFieldTools
         {
             if (liveUpdate && Application.isEditor && !Application.isPlaying)
             {
-                RegenerateField();
+                //RegenerateField();
             }
         }
 

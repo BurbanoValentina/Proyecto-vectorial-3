@@ -29,8 +29,8 @@ namespace VectorFieldTools
             if (vectorField == null)
                 vectorField = GetComponent<VectorFieldManager>();
 
-            if (vectorField != null)
-                vectorField.GenerateField();
+            //if (vectorField != null)
+            //     vectorField.GenerateField();
         }
 
         void Update()
@@ -50,7 +50,7 @@ namespace VectorFieldTools
             float rotation = time * 0.5f;
             vectorField.formulaX = $"(-y*cos({rotation:F4})-x*sin({rotation:F4}))/(x^2+y^2+1)";
             vectorField.formulaY = $"(x*cos({rotation:F4})-y*sin({rotation:F4}))/(x^2+y^2+1)";
-            vectorField.RegenerateField();
+            //vectorField.RegenerateField();
         }
 
         public void SetCircularField()
